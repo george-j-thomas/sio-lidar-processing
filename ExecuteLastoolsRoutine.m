@@ -225,17 +225,17 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
        %%% Create directory of Original & Classified .las files
        %%% and save the original classifications in "User Data" of
        %%% classified files
-%        pd_path = [bpath,'\',bname{2},'\',dname{3},'\*.las'];
-%        pd_list = dir(pd_path);
-%        dir_og = pd_list(~endsWith({pd_list.name},'centroids.las') & ~endsWith({pd_list.name},'classified.las'));
-%        dir_class = pd_list(endsWith({pd_list.name},'classified.las'));
-%        for k = 1:length(dir_og)
-%            s = LASread([dir_og(k).folder,'\',dir_og(k).name]);
-%            class1 = s.record.classification;
-%            s2 = LASread([dir_class(k).folder,'\',dir_class(k).name]);
-%            s2.record.user_data = class1;
-%            LASwrite(s2,[dir_class(k).folder,'\',dir_class(k).name]);
-%        end   
+       pd_path = [bpath,'\',bname{2},'\',dname{3},'\*.las'];
+       pd_list = dir(pd_path);
+       dir_og = pd_list(~endsWith({pd_list.name},'centroids.las') & ~endsWith({pd_list.name},'classified.las'));
+       dir_class = pd_list(endsWith({pd_list.name},'classified.las'));
+       for k = 1:length(dir_og)
+           s = LASread([dir_og(k).folder,'\',dir_og(k).name]);
+           class1 = s.record.classification;
+           s2 = LASread([dir_class(k).folder,'\',dir_class(k).name]);
+           s2.record.user_data = class1;
+           LASwrite(s2,[dir_class(k).folder,'\',dir_class(k).name]);
+       end   
     %%%
     %%% LAS2LAS
     %%%
