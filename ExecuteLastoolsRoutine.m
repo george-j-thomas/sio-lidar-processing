@@ -460,7 +460,15 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
                 end
             end
         end
-                            
+          
+    %%%
+    %%% GET SURVEY TIME
+    %%% Get a general time for survey from gps time data
+        
+        %%% Call GetSurveyTime.m function on input file
+        input_fol = [bpath,'\',bname{1}];
+        surveytime = GetSurveyTime(input_fol,filename);
+        
     %%%
     %%% LASMERGE 
     %%% Create full beach_ground.las, cliff_ground.las, and beach_cliff_ground.las
@@ -471,7 +479,14 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
         fclose(fid); 
         eee=cell2mat(ddd{1}); 
         [aa,bb,cc]=fileparts(eee); 
-        outname = [bb(1:9),minmop,'_',maxmop,bb(21:end)];
+        
+        %%% Check to see if there is already a time included, then set
+        %%% output name
+        if ~isempty(str2num(bb(22:25)))
+            outname = [bb(1:9),minmop,'_',maxmop,bb(21:end)];
+        else
+            outname = [bb(1:9),minmop,'_',maxmop,'_',surveytime,bb(21:end)];
+        end
         
         %%% Merge all beach ground tiles
         system([lpath{7},' -i "',outbeachground,'\*.las" -odir "',outbeach,'" -o "',outname,'_beach_ground.las"']);
@@ -489,6 +504,11 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
     %%%
         system([lpath{8},' -i "',outbeach,'\',outname,'_beach_ground.las"' ,' -step 1 -meter -average -elevation -otif -nad83 -utm 11north -vertical_navd88_geoid12b"']);
 
+    %%% 
+    %%% MOP TRANSECTS FROM DEM
+    %%%
+        files = dir([outbeach,'\*.tif']);
+        done = extractMOPLidarProfiles(files);
         
 %%% DONE
     newfoldername = outname;
