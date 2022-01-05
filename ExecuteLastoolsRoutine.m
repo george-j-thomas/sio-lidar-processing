@@ -1,5 +1,7 @@
 function [newfoldername] = ExecuteLastoolsRoutine(filename, foldername, polyStyle)
 
+addpath('functions')
+
 bpath = 'D:\LidarProcessing_Level2';
 lbase = 'C:\LAStools\bin\';
 
@@ -42,6 +44,8 @@ dname{15}='Beach_Only';
 dname{16}='Tiles';
 dname{17}='Ground';
 dname{18}='Nonground';
+dname{19}='reclip_reclass';
+
 
 %%% GROUND FILTER PATH
 gpath{1}=[bpath,'\Olsen_Ground_Filter\TriRAI_20181031\Las_Reader_BPD_20181031.exe'];
@@ -61,7 +65,7 @@ elseif strcmpi(polyStyle, 'mops') == 1
     spath{3}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\polymops_beach.txt'];
     spath{4}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\polymops_cliff.txt'];
 elseif strcmpi(polyStyle, 'malibu') == 1
-    %%% MOP SHAPEFILE PATH
+    %%% MALIBU SHAPEFILE PATH
     spath{1}=[bpath,'\MOP_Polygons\Malibu\MalibuPolyBuffer.shp'];
     spath{2}=[bpath,'\MOP_Polygons\Malibu\MalibuPoly.shp'];
     spath{3}=[bpath,'\MOP_Polygons\Malibu\polymops_beach.txt'];
@@ -100,15 +104,13 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
         listing3=dir(outdir);
         listing3(1:2)=[];
         %%% Las Info - Spit to .txt
-        for ccc=1:length(listing3)
-            system([lpath{3},' -i "',bpath,'\',bname{2},'\',dname{2},'\',listing3(ccc).name,'" -otxt']);
-        end
+        system([lpath{3},' -i "',bpath,'\',bname{2},'\',dname{2},'\*.las','" -otxt']);
         % Re-Create directory from lasclip_out
         listing3=dir(outdir);
         listing3(1:2)=[];
         %%% Find Number of Points in file
         for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
+            [~,bb,cc]=fileparts(listing3(ccc).name);
             if(strcmp(cc,'.txt'))
                 fid = fopen([outdir,'\',listing3(ccc).name]);
                 dummy = textscan(fid,'%s','delimiter','\n');
@@ -150,20 +152,12 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
     %%% LAS2LAS CONVERT TO LAS1.2
     %%%
         disp(['las2las ...  ',filename])
-        listing3=dir(outdir);
-        listing3(1:2)=[];
-        
         outdir = [bpath,'\',bname{2},'\',dname{3}];
         if( exist(outdir)~=7 ) 
             mkdir(outdir); 
         end
-        for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
-            if(strcmp(cc,'.las'))
-                system([lpath{4},' -i "',bpath,'\',bname{2},'\',dname{2},'\',listing3(ccc).name,'"',...
-                    ' -set_version 1.2 -drop_class 7 9 18 -change_classification_from_to 250 30 -change_classification_from_to 251 31 -odir "',outdir,'"']);
-            end
-        end
+        system([lpath{4},' -i "',bpath,'\',bname{2},'\',dname{2},'\*.las','"',...
+                    ' -set_version 1.2 -cores 4 -drop_class 7 9 18 -drop_z_below -2.5 -change_classification_from_to 250 30 -change_classification_from_to 251 31 -odir "',outdir,'"']);
     %%%
     %%% OPTION FILE COPY
     %%%
@@ -204,7 +198,7 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
         %%% Run Las_Reader_BPD_20181031.exe on each .las file in
         %%% processing_directory - this creates a .bpd file
         for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
+            [~,~,cc]=fileparts(listing3(ccc).name);
             if(strcmp(cc,'.las'))
                 system([gpath{1},' ',outdir,'\',listing3(ccc).name]);
             end
@@ -214,7 +208,7 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
     %%%
         %%% Run ground filter on each .bpd file created
         for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
+            [~,bb,cc]=fileparts(listing3(ccc).name);
             if(strcmp(cc,'.las'))
                 system([gpath{2},' ',outdir,'\',bb,'.bpd']);
             end
@@ -237,82 +231,24 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
            LASwrite(s2,[dir_class(k).folder,'\',dir_class(k).name]);
        end   
     %%%
-    %%% LAS2LAS
-    %%%
-        disp(['las2las ...  ',filename]) % asdf
-        %%% Create directory from processing_directory
-        outdir=[bpath,'\',bname{2},'\',dname{3}];
-        listing3=dir(outdir);
-        listing3(1:2)=[];
-        %%% Set Output to ground folder
-        outdir = [bpath,'\',bname{2},'\',dname{4}];
-        if( exist(outdir)~=7 ) 
-            mkdir(outdir); 
-        end
-        %%% Output ground data in las files to ground folder within
-        %%% Intermediate folder
-        for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
-            if( strcmp(cc,'.las') & strcmp(bb(end-9:end),'classified'))
-                system([lpath{5},' -i "',bpath,'\',bname{2},'\',dname{3},'\',listing3(ccc).name,'"',...
-                    ' -keep_classification 2 -nad83 -utm 11N -vertical_navd88_geoid12b -odir "',outdir,'" -olas']);
-            end
-        end
-        %%% Set Output to nonground folder
-        outdir = [bpath,'\',bname{2},'\',dname{5}];
-        if( exist(outdir)~=7 ) 
-            mkdir(outdir); 
-        end
-        %%% Output nonground data in las files to nonground folder within
-        %%% Intermediate folder
-        for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
-            if( strcmp(cc,'.las') & strcmp(bb(end-9:end),'classified'))
-                system([lpath{5},' -i "',bpath,'\',bname{2},'\',dname{3},'\',listing3(ccc).name,'"',...
-                    ' -drop_classification 2 -nad83 -utm 11N -vertical_navd88_geoid12b -odir "',outdir,'" -olas']);
-            end
-        end
-    %%%
     %%% LASCLIP FROM BUFFERED POLYS TO NORMAL POLYS
     %%%
-        disp(['lasclip into normal polygons...  ',filename])
-        %%% Set Output to lasclip_ground
-        outdir = [bpath,'\',bname{2},'\',dname{6}];
+        disp(['lasclip classified tiles into normal polygons...  ',filename])
+        %%% Set Output to reclip_reclass
+        outdir = [bpath,'\',bname{2},'\',dname{19}];
         if( exist(outdir)~=7 ) 
             mkdir(outdir); 
         end
-        %%% Clip ground buffered polys into normal polys
-        listing3=dir([bpath,'\',bname{2},'\',dname{4}]);
-        listing3(1:2)=[];
-        for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
-            if( strcmp(cc,'.las') & strcmp(bb(end-9:end),'classified'))
-                system([lpath{6},' -i "',bpath,'\',bname{2},'\',dname{4},'\',listing3(ccc).name,'"',...
-                    ' -poly ',spath{2},' -split ',...
+        %%% Clip classified buffered polys into normal polys
+        system([lpath{6},' -i "',bpath,'\',bname{2},'\',dname{3},'\*classified.las','"',...
+                    ' -poly ',spath{2},' -split -cores 4',...
                     ' -odir "',outdir,'"']);
-            end
-        end
-        %%% Set Ouput to lasclip_nonground
-        outdir = [bpath,'\',bname{2},'\',dname{7}];
-        if( exist(outdir)~=7 ) 
-            mkdir(outdir); 
-        end
-        %%% Clip nonground buffered polys into normal polys
-        listing3=dir([bpath,'\',bname{2},'\',dname{5}]);
-        listing3(1:2)=[];
-        for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
-            if( strcmp(cc,'.las') & strcmp(bb(end-9:end),'classified'))
-                system([lpath{6},' -i "',bpath,'\',bname{2},'\',dname{5},'\',listing3(ccc).name,'"',...
-                    ' -poly ',spath{2},' -split ',...
-                    ' -odir "',outdir,'"']);
-            end
-        end
+
     %%%
     %%% REMOVE UNNECESARRY FILES (BUFFER OVERLAPS)
     %%%
         %%% Create directory from lasclip_ground 
-        listing3=dir([bpath,'\',bname{2},'\',dname{6}]);
+        listing3=dir([bpath,'\',bname{2},'\',dname{19}]);
         listing3(1:2)=[];
         %%% Delete portions that are overlap
         for ccc=1:length(listing3)
@@ -325,20 +261,30 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
                 end
             end
         end
-        %%% Create directory from lasclip_nonground
-        listing3=dir([bpath,'\',bname{2},'\',dname{7}]);
-        listing3(1:2)=[];
-        %%% Delete portions that are overlap
-        for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
-            if(strcmp(cc,'.las'))                           
-                num1=str2num(bb(end-5:end));
-                num2=str2num(bb(end-23:end-18));
-                if(num1~=num2) 
-                    delete([listing3(ccc).folder,'\',listing3(ccc).name]); 
-                end
-            end
+
+    %%%
+    %%% LAS2LAS
+    %%%
+        disp(['las2las ...  ',filename]) 
+        %%% Set Output to lasclip_ground folder
+        outdir = [bpath,'\',bname{2},'\',dname{6}];
+        if( exist(outdir)~=7 ) 
+            mkdir(outdir); 
         end
+        %%% Output ground data in las files to lasclip_ground folder within
+        %%% Intermediate folder
+        system([lpath{5},' -i "',bpath,'\',bname{2},'\',dname{19},'\*.las','"',...
+                    ' -keep_classification 2 -nad83 -utm 11N -vertical_navd88_geoid12b -cores 4 -odir "',outdir,'" -olas']);
+        %%% Set Output to lasclip_nonground folder
+        outdir = [bpath,'\',bname{2},'\',dname{7}];
+        if( exist(outdir)~=7 ) 
+            mkdir(outdir); 
+        end
+        %%% Output nonground data in las files to lasclip_nonground folder within
+        %%% Intermediate folder
+        system([lpath{5},' -i "',bpath,'\',bname{2},'\',dname{19},'\*.las','"',...
+                    ' -drop_classification 2 -nad83 -utm 11N -vertical_navd88_geoid12b -cores 4 -odir "',outdir,'" -olas']);
+
    %%%
    %%% RENAME WITH REAL MOP NUMBERS
    %%%
@@ -352,7 +298,7 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
            %%% Rename ground files with their actual MOP number
            cd([bpath,'\',bname{2},'\',dname{6}])
            for ccc=1:length(listing3)
-                [aa,bb,cc]=fileparts(listing3(ccc).name);
+                [~,bb,cc]=fileparts(listing3(ccc).name);
                 if(strcmp(cc,'.las'))                           
                     tilenum = str2num(bb(end-5:end));
                     %id_tile = find(FID == tilenum);
@@ -367,7 +313,7 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
             %%% Rename nonground files with their actual MOP number
             cd([bpath,'\',bname{2},'\',dname{7}])
             for ccc=1:length(listing3)
-                [aa,bb,cc]=fileparts(listing3(ccc).name);
+                [~,bb,cc]=fileparts(listing3(ccc).name);
                 if(strcmp(cc,'.las'))                           
                     tilenum = str2num(bb(end-5:end));
                     %id_tile = find(FID == tilenum);
@@ -377,10 +323,18 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
             end
             %%% Return to main directory
             cd(bpath)
+            
+            minmop = num2str(min(cell2mat(realmop)),'%05.f');
+            maxmop = num2str(max(cell2mat(realmop)),'%05.f');
+            
+       else
+           %%% If not the 'mops' polystyle, use original mop nums
+           [~,bb,~]=fileparts(filename);
+           minmop = bb(10:14);
+           maxmop = bb(16:20);
        end
        
-       minmop = num2str(min(cell2mat(realmop)),'%05.f');
-       maxmop = num2str(max(cell2mat(realmop)),'%05.f');
+       
        
        
     %%%
