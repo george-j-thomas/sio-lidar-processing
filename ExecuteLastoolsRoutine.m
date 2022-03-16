@@ -5,10 +5,6 @@ addpath('functions')
 bpath = 'D:\LidarProcessing_Level2';
 lbase = 'C:\LAStools\bin\';
 
-%%% INPUT & OUTPUT PATH 
-rpath{1} = '\\reefbreak\group\LiDAR\VMZ2000_Truck\LiDAR_Processed_Level1\';
-rpath{2} = 'D:\LiDAR_Processed_Level2\';
-
 %%% LASTOOLS PATH
 lpath{1} = [lbase,'las2las.exe'];
 lpath{2} = [lbase,'lasclip.exe'];
@@ -52,26 +48,28 @@ gpath{1}=[bpath,'\Olsen_Ground_Filter\TriRAI_20181031\Las_Reader_BPD_20181031.ex
 gpath{2}=[bpath,'\Olsen_Ground_Filter\TriRAI_20181031\TriRAI_20181031.exe'];
 
 %%% SET DESIRED POLYGON PATH
-if strcmpi(polyStyle, 'poly3') == 1
-    %%% ORIGINAL POLY3 SHAPEFILE PATH
-    spath{1}=[bpath,'\Lidar_Polygons\poly3_buffer.shp'];
-    spath{2}=[bpath,'\Lidar_Polygons\poly3.shp'];
-    spath{3}=[bpath,'\Lidar_Polygons\poly3_beach.txt'];
-    spath{4}=[bpath,'\Lidar_Polygons\poly3_cliff.txt'];
-elseif strcmpi(polyStyle, 'mops') == 1
+if strcmpi(polyStyle, 'mops') == 1
     %%% MOP SHAPEFILE PATH
-    spath{1}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\polymopsbuffer2.shp'];
-    spath{2}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\polymops2.shp'];
-    spath{3}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\polymops_beach.txt'];
-    spath{4}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\polymops_cliff.txt'];
+    spath{1}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\SD_ManualBackbeach_polys_buffer.shp'];
+    spath{2}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\SD_ManualBackbeach_polys.shp'];
+    spath{3}=[bpath,'\MOP_Polygons\V2_ComplexBackbeach\SD_ManualBackbeach_polys_table.txt'];
 elseif strcmpi(polyStyle, 'malibu') == 1
     %%% MALIBU SHAPEFILE PATH
-    spath{1}=[bpath,'\MOP_Polygons\Malibu\MalibuPolyBuffer.shp'];
-    spath{2}=[bpath,'\MOP_Polygons\Malibu\MalibuPoly.shp'];
-    spath{3}=[bpath,'\MOP_Polygons\Malibu\polymops_beach.txt'];
-    spath{4}=[bpath,'\MOP_Polygons\Malibu\polymops_cliff.txt'];
+    spath{1}=[bpath,'\MOP_Polygons\Malibu\CA_Backbeach_MOP_poly_buffer.shp'];
+    spath{2}=[bpath,'\MOP_Polygons\Malibu\CA_Backbeach_MOP_poly.shp'];
+    spath{3}=[bpath,'\MOP_Polygons\Malibu\CA_Backbeach_MOP_table.txt'];
+elseif strcmpi(polyStyle, 'willrogers') == 1
+    %%% WILL ROGERS SHAPEFILE PATH
+    spath{1}=[bpath,'\MOP_Polygons\WillRogers\20210324_WillRogers_poly_buffer.shp'];
+    spath{2}=[bpath,'\MOP_Polygons\WillRogers\20210324_WillRogers_poly.shp'];
+    spath{3}=[bpath,'\MOP_Polygons\WillRogers\20210324_WillRogers_table.txt'];
+elseif strcmpi(polyStyle, 'pendleton') == 1
+    %%% Pendleton SHAPEFILE PATH
+    spath{1}=[bpath,'\MOP_Polygons\Pendleton\Pendleton_mops_buffer.shp'];
+    spath{2}=[bpath,'\MOP_Polygons\Pendleton\Pendleton_mops.shp'];
+    spath{3}=[bpath,'\MOP_Polygons\Pendleton\Pendleton_mops_table.txt'];    
 else
-    disp('Not a valid polygon style, must be "poly3", "mops", or "malibu"')
+    disp('Not a valid polygon style, must be "poly3", "mops", or a beach-specific style')
 end
 
 %%% TEMPORARY FILES CONTAINING PROCESSING FILE NAME
@@ -94,10 +92,10 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
         end
         %%% Lasclip into buffered polygons
         system([lpath{2},' -i "',bpath,'\',bname{1},'\',filename,'"',...
-        ' -poly ',spath{1},' -split',...
+        ' -drop_class 7 9 18 -poly ',spath{1},' -split',...
         ' -odir "',outdir,'"']);
     %%%
-    %%% LAS INFO, REMOVE IF POINT NUMBER < 10
+    %%% LAS INFO, REMOVE IF POINT NUMBER < 100
     %%% get info from each file - spit to txt file - check if pnum<10
         disp(['lasinfo ...  ',filename])
         %%% Create directory from lasclip_out
@@ -222,13 +220,17 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
        pd_path = [bpath,'\',bname{2},'\',dname{3},'\*.las'];
        pd_list = dir(pd_path);
        dir_og = pd_list(~endsWith({pd_list.name},'centroids.las') & ~endsWith({pd_list.name},'classified.las'));
-       dir_class = pd_list(endsWith({pd_list.name},'classified.las'));
+%        dir_class = pd_list(endsWith({pd_list.name},'classified.las'));
        for k = 1:length(dir_og)
-           s = LASread([dir_og(k).folder,'\',dir_og(k).name]);
-           class1 = s.record.classification;
-           s2 = LASread([dir_class(k).folder,'\',dir_class(k).name]);
-           s2.record.user_data = class1;
-           LASwrite(s2,[dir_class(k).folder,'\',dir_class(k).name]);
+           if exist([dir_og(k).folder,'\',dir_og(k).name(1:end-4),'_classified.las'])
+               s = LASread([dir_og(k).folder,'\',dir_og(k).name]);
+               class1 = s.record.classification;
+%                s2 = LASread([dir_class(k).folder,'\',dir_class(k).name]);
+               s2 = LASread([dir_og(k).folder,'\',dir_og(k).name(1:end-4),'_classified.las']);
+               s2.record.user_data = class1;
+%                LASwrite(s2,[dir_class(k).folder,'\',dir_class(k).name]);
+               LASwrite(s2,[dir_og(k).folder,'\',dir_og(k).name(1:end-4),'_classified.las']);
+           end
        end   
     %%%
     %%% LASCLIP FROM BUFFERED POLYS TO NORMAL POLYS
@@ -247,7 +249,7 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
     %%%
     %%% REMOVE UNNECESARRY FILES (BUFFER OVERLAPS)
     %%%
-        %%% Create directory from lasclip_ground 
+        %%% Create directory from reclip_reclass 
         listing3=dir([bpath,'\',bname{2},'\',dname{19}]);
         listing3(1:2)=[];
         %%% Delete portions that are overlap
@@ -293,7 +295,10 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
            listing3=dir([bpath,'\',bname{2},'\',dname{6}]);
            listing3(1:2)=[];
            %%% Read in FID/MOP Number associations
-           [FID,MOPs] = readvars('polymops2_MOPnum.xls');
+%            [FID,MOPs] = readvars('polymops2_MOPnum.xls');
+           t = readtable(spath{3});
+           FID = t(:,1);
+           MOPs = t.MOP_num;
            realmop = {};
            %%% Rename ground files with their actual MOP number
            cd([bpath,'\',bname{2},'\',dname{6}])
@@ -360,33 +365,28 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
     %%%
     %%% SORT GROUND BEACH AND CLIFF
     %%%
-
+    t = readtable(spath{3});
+    FID = t(:,1);
+    MOPs = t.MOP_num;
         %%% Create directory from lasclip_ground folder
         listing3=dir([bpath,'\',bname{2},'\',dname{6}]);
         listing3(1:2)=[];
         %%% Read txt files with beach & cliff tile numbers
-        bnum=dlmread(spath{3});
-        cnum=dlmread(spath{4});
+        tile_class = t.Class;
         %%% Sort Beach and Cliff ground tiles by number
         for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
+            [~,bb,cc]=fileparts(listing3(ccc).name);
             %%% Only operate on .las files
             if(strcmp(cc,'.las'))
                 num=str2num(bb(end-5:end));
-                %%% Sort Beach Tiles to beach_ground folder
-                for ddd=1:length(bnum) 
-                    if(bnum(ddd)==num) 
-                        copyfile([bpath,'\',bname{2},'\',dname{6},'\',listing3(ccc).name],outbeachground); 
-                    end
-                end
-                %%% Sort Cliff Tiles to cliff_ground folder
-                for ddd=1:length(cnum) 
-                    if(cnum(ddd)==num) 
-                        copyfile([bpath,'\',bname{2},'\',dname{6},'\',listing3(ccc).name],outbackground); 
-                    end
+                if tile_class(FID == num) == 1
+                    copyfile([bpath,'\',bname{2},'\',dname{6},'\',listing3(ccc).name],outbeachground); 
+                else
+                    copyfile([bpath,'\',bname{2},'\',dname{6},'\',listing3(ccc).name],outbackground); 
                 end
             end
         end
+
     %%%
     %%% SORT NON-GROUND BEACH AND CLIFF
     %%%
@@ -395,26 +395,19 @@ tname{2}=[bpath,'\','lasfile_list2.txt'];
         listing3=dir([bpath,'\',bname{2},'\',dname{7}]);
         listing3(1:2)=[];
         %%% Sort beach and cliff nonground files by number
-        for ccc=1:length(listing3)
-            [aa,bb,cc]=fileparts(listing3(ccc).name);
+         for ccc=1:length(listing3)
+            [~,bb,cc]=fileparts(listing3(ccc).name);
             %%% Only operate on .las files
             if(strcmp(cc,'.las'))
                 num=str2num(bb(end-5:end));
-                %%% Sort Beach Tiles to beach_nonground folder
-                for ddd=1:length(bnum) 
-                    if(bnum(ddd)==num) 
-                        copyfile([bpath,'\',bname{2},'\',dname{7},'\',listing3(ccc).name],outbeachnon); 
-                    end
-                end
-                %%% Sort Cliff Tiles to cliff_nonground folder
-                for ddd=1:length(cnum) 
-                    if(cnum(ddd)==num) 
-                        copyfile([bpath,'\',bname{2},'\',dname{7},'\',listing3(ccc).name],outbacknon); 
-                    end
+                if tile_class(FID == num) == 1
+                    copyfile([bpath,'\',bname{2},'\',dname{6},'\',listing3(ccc).name],outbeachnon); 
+                else
+                    copyfile([bpath,'\',bname{2},'\',dname{6},'\',listing3(ccc).name],outbacknon); 
                 end
             end
         end
-          
+
     %%%
     %%% GET SURVEY TIME
     %%% Get a general time for survey from gps time data
