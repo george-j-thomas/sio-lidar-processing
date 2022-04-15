@@ -1,6 +1,6 @@
 function [tUTC,tLST] = GPStoUTC_midnightStart(tSecFromMidnight,filename,leapseconds)
 
-% get the sunday start time for the filename
+% get the midnight start time for the filename
 % returns also the time in local time for San Diego
 % Needs some changes to account for local time in date of filename
 
@@ -23,7 +23,7 @@ end
 midnightstart = dateshift(filedate,'start','day');
 
 
-% tGPS is seconds since the sunday start time
+% tGPS is seconds since the midnight start time
 secondsinoneday = 60*60*24;
 midnightstart = datenum(midnightstart);
 t_in_days = tSecFromMidnight./secondsinoneday;

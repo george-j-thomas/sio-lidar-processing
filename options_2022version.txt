@@ -1,0 +1,284 @@
+## RAMBO INPUT PARAMETERS SETTINGS FILE
+VERSION 1.25
+
+#********************************************#
+#***********BASIC INPUT PARAMETERS***********#
+#********************************************#
+#Number of Processing Cores to utilize
+NCORES 8
+# 1 = keep command prompt open at the end 0= auto close command prompt when finished
+CMDOPEN 0
+#cell size (units of your input dataset)
+CELLSIZE 0.050000
+#minimum number of points per cell (>=1)
+MINPTS 1
+#Site Code
+SITECODE DEFAULT
+#Import Seismic and Rainfall Value File
+IMPORTPGA 0
+
+#********************************************#
+#************** EXPORT SETTTINGS*************#
+#********************************************#
+#Analysed Point Cloud Export Settings (0 = don't export, 1= export)
+#                  LAZ       LAS       PTX       TXT       TXTALL
+EXPORTANPC         1         0         0         0         0
+#export PTX file REQUIRED TO HAVE A PNG EXPORTED AS A TEXTURE MAP FOR THE OBJ.
+
+#Ground FilteredClassified Point Cloud Export Settings (0 = don't export, 1= export)
+#                  LAZ       LAS       BPD_GRND
+EXPORTGFPC         0         1         0
+
+#MODEL Export Settings (0 = don't export, 1= export)
+#                  OBJ       OBJ_DELNY BIL(RAST) GRNDFILTERBILS_Iterations
+EXPORTMODL         1         1         1         0
+
+#Analysis Results Export Settings (0 = don't export, 1= export)
+#            LogRegDataset      SEISMICRAICALCS
+EXPORTANRE     0          0
+
+#export Extended Baseline Output Information (0= no, 1 =yes) REQUIRES CHANGEANALYSIS =1
+EXPORTEXTBL 0
+##export directory name
+EXPORTDIR output
+
+#********************************************#
+#*********DATA PROCESSING STRUCTURE**********#
+#********************************************#
+#rotatePoints to work in Best Fit Plane 0 = no (XY plane), 1= yes (Rotate to Bestfit Plane for each dataset individually),
+#              2= use only first dataset to determine BFP, 3=rotate to predefined plane (requires parameters below)
+ROTPTS 1
+#IF ROTPTS ==3, specify plane equation in the form Ax+By+Cz+D = 0
+APLANE_ABCD -0.474527 0.638234 -0.606202 -2555213.402000
+#IF ROTPTS ==3, specify data centroid (serves as point of rotation)
+APLANE_CENT 1578378.339000 5177117.108000 30.308000
+#Lock cube origin to a specific point (0 = no, flexible for each dataset, 1 = yes (requires XYZCubeOrigin) 2 = use first datasets cube structure)
+LOCKORIGIN 0
+#If LOCKORIGIN ==1, origin point for cubes (specify lower corner of the points to serve as the origin).
+XYZCubeOrigin  1578305.000000 5177051.000000 20.000000
+#If LOCKORIGIN ==1, NCOLS - specify the number of columns for the grid
+NCOLS 1771
+#If LOCKORIGIN ==1, NROWS - specify the number of rows for the grid
+NROWS 1165
+
+#*********************************************#
+#***********HOLE FILLING PARAMETERS***********#
+#*********************************************#
+#Fill Holes (0 = none, 1= fill holes for both datasets, 2 = fill holes for baseline dataset only in change analysis mode).
+FILLHOLES 0
+#Hole Fill Window 
+HFWIN 20
+#PERCENT POINTS IN WINDOW
+HFPER 0.350000
+#Regularization 
+HFREG 0.000000
+
+#**********************************************#
+#***********GROUND FILTER PARAMETERS***********#
+#**********************************************#
+#Run Ground Filter 0 = no, 1 = yes (_GRND)
+GRNDFIL 1
+#Ground filter number of iterations (COARSE TO FINE)
+GFITER 5
+#Ground filter coarse cell size (Fine cell size is the final cell size indicated above)
+GFCELL 1.000000
+#Ground filter initial threshold factor (COARSE)
+GFTHRESHCOARSE 1.00000
+#Ground filter final threshold (FINE)
+GFTHRESHFINE 3.00000
+#Ground filter median window size (COARSE) //recommend leaving at 1)
+GFMEDIANCOARSE 1
+#Ground filter median window size (FINE) //recommend value greater than 1
+GFMEDIANFINE 5
+#Ground filter mode (0 = coarse search within a window, 1 = compare to plane (hopefully better for flat slopes)
+GFMODE 0
+
+#************************************************#
+#***********CHANGE ANALYSIS PARAMETERS***********#
+#************************************************#
+#Change ANALYSIS 0 = no, 1= yes (_BL)
+CHGANALYSIS 0
+#Change Smoothing window size for individual failure identification
+CHGSMOOTHWS 1
+#Significant Change Threshold
+CHGSIG 0.050000
+#Remove average bias between scans (WARNING - COULD REMOVE UNIFORM CHANGE ACROSS THE SITE!!!!)
+CHGAVEBIAS 1
+
+#*************************************************************#
+#***********MORPHOLOGICAL INDEX ANALYSIS PARAMETERS***********#
+#*************************************************************#
+#Number of window sizes to compute morphological parameters (e.g., roughness, slope, curvature)
+# 0 = do not compute, 1= 1 neighbour in each direction (3x3 grid), 2= 2 neighbours in each direction (e.g, 5x5 grid), etc. 
+MORPHWIN 10
+#Median Filter of slope values (0 = no filtering, otherwise specify window size)
+MEDFILSLPWS 1
+#RAI Slope Classifications 0 = none, 1= Rockfall Activity Index (RAI), 2 = CRACK ANALYSIS  
+ANALYSISMODE 0
+#RELATIVE ZMIN (-999 indicates use minimum value in the dataset)
+RELZMIN -999.000000
+
+#*************************************************************#
+#***********GEOLOGY MAP PARAMETERS****************************#
+#*************************************************************#
+#GEOLOGYMAP PARAMETERS*********** 0 - no geology map, 1= geology map (REQUIRES: geology.bil, geology.hdr)
+GEOLOGYMAP 0
+#GEOLOGY MAP ROTATION POINT [X Y Z] 
+GEOMAPROTPT 1570620.395000 5172042.957000 0.000000
+#GEOLOGY MAP ROTATION ANGLE [ALPHA] 
+GEOMAPROTANG 56.300000
+#GEO MAP Z REFERENCE POINT (MINIMUM) for height.
+GEOMAPMINZ 0.000000
+#GEO MAP X REFERENCE POINT (MINIMUM) for Xvalues (DIST).
+GEOMAPMINX 1570000.000000
+#GEO MAP Y REFERENCE POINT (MINIMUM) for Yvalues (DIST).
+GEOMAPMINY 5181200.000000
+#GEO MAP XTRANSLation (x_trans in script)
+GEOMAPXTRANS 977.000000
+#GEO MAP YTRANSLation (y_trans in script)
+GEOMAPYTRANS 0.000000
+#GEO MAP DISTSCALE (1.0 or -1.0)
+GEOMAPDISTSF -1.000000
+#GEO MAP USE 0=X, 1=Y
+GEOMAPUSEXY 0
+
+#**************************************************************#
+#***********ROCKFALL ACTIVITY INDEX (RAI) PARAMETERS***********#
+#**************************************************************#
+#RAI TALUS SLOPE THRESHOLD (DEFAULT 35-45deg - Change with caution!!!! float)
+RAITALUSSLP 42.000000
+#RAI Failure Rate (probability Values).  Need to list 8 here!  
+#        UNCLASSIFIED	  TALUS            MASSIVE_STABLE	SMALL_ACTIVE    MEDIUM_ACTIVE     LARGE_ACTIVE     SHALLOW_OVERHANG	FLAT_OVERHANG
+RAIFAILRATE 
+         0.032600         0.129000         0.023400         0.030600         0.033400         0.029500         0.022800         0.036200
+#RAI Volume Multipliers
+#        UNCLASSIFIED	  TALUS            MASSIVE_STABLE	SMALL_ACTIVE    MEDIUM_ACTIVE     LARGE_ACTIVE     SHALLOW_OVERHANG	FLAT_OVERHANG
+RAIVOLMULT 
+         0.145200         0.124000         0.170400         0.172400         0.170200         0.216900         0.212500         0.231600
+#SPECIFIC GRAVITY 
+RAISPECGRAVITY 2.700000
+
+#**************************************************************#
+#******SEISMIC ROCKFALL ACTIVITY INDEX (RAI) PARAMETERS********#
+#**************************************************************#
+# These are the parameters to implement the seismic RAI.  
+#SEISMIC RAI Failure Rate (probability Values) ScaleFactors Mu and Lambda.  Need to list 8 here!  
+#        UNCLASSIFIED	  TALUS            MASSIVE_STABLE	SMALL_ACTIVE    MEDIUM_ACTIVE     LARGE_ACTIVE     SHALLOW_OVERHANG	FLAT_OVERHANG
+SEISRAIFAILRATEMU 
+      1019.244000       168.438000       838.290000      1101.977000      1029.585000      1297.851000      1767.528000      1541.614000
+SEISRAIFAILRATELA 
+         1.794000         1.650000         2.109000         1.651000         1.475000         1.220000         1.460000         1.303000
+#SEISMIC RAI Volume Multipliers (average Failure Depths) ScaleFactors Mu and Lambda.  Need to list 8 here! 
+#        UNCLASSIFIED	  TALUS            MASSIVE_STABLE	SMALL_ACTIVE    MEDIUM_ACTIVE     LARGE_ACTIVE     SHALLOW_OVERHANG	FLAT_OVERHANG
+SEISRAIVOLMULTMU 
+       769.680000       435.951000       665.599000       640.908000       592.433000       443.679000       534.258000       369.159000
+SEISRAIVOLMULTLA 
+         1.361000         1.158000         1.439000         1.293000         1.272000         1.134000         1.391000         1.368000
+#NUMBER OF EPOCHS to compute RAI Scores followed by EPOCH Values in days. (>0.  1= day of the earthquake).
+NSREPOCHS 7
+7 30 92 183 365 730 1825 
+#PGA VALUES FOR EVALUATION
+#PGA VALUES IN 0 = %g (decimal form) 1 = m/s2
+PGAGORMS2 1
+#NUMBER OF PGA VALUES to compute RAI Scores followed by PGA values
+NSPGAS 4
+1.000000 2.000000 3.000000 4.000000 
+
+#**************************************************************#
+#***************LOGISTIC REGRESSION PARAMETERS*****************#
+#**************************************************************#
+# These are the parameters to implement the Logistic Regression Prediction described in SPR809.
+# There are two models: one for the EQ event and another for time since earthquake. The LR is split
+# into coefficients for the parameters followed by the categorial values for the RAI class. 
+# Note that the pga values from the previous section are used for the earthquake analysis
+# and the time epochs are used for the nonearthquake LR analysis 
+# Earthquake Model
+# Option to compute or not compute the logistic regression. 0 = no 1 = yes
+COMPUTELR 0
+#Intercept SlopeDEG03 AspectDEG01 RoughDEG04 Curvature01 KE PerNeighborFailedSE10 PGA_H
+LRCOEFFS_EQ 
+        -3.136100        -0.001200        -0.001100         0.023800         0.000400         0.075300         0.829900         0.725000
+#        UNCLASSIFIED	  TALUS            MASSIVE_STABLE	SMALL_ACTIVE    MEDIUM_ACTIVE     LARGE_ACTIVE     SHALLOW_OVERHANG	FLAT_OVERHANG
+LRCOERAI_EQ 
+        -0.400000        -0.475600        -0.439200        -0.405200        -0.429400        -0.818800        -0.305000         0.000000
+#Intercept SlopeDEG03 AspectDEG01 RoughDEG04 Curvature01 KE PerNeighborFailedSE10 MaxDailyRain TimeAfterEQ
+LRCOEFFS_NEQ 
+        -1.820000        -0.023700        -0.000960         0.069100         0.000702         0.011900         1.490000         0.012900         0.000380
+#        UNCLASSIFIED	  TALUS            MASSIVE_STABLE	SMALL_ACTIVE    MEDIUM_ACTIVE     LARGE_ACTIVE     SHALLOW_OVERHANG	FLAT_OVERHANG
+LRCOERAI_NEQ 
+        -1.000000        -1.060000        -1.390000        -1.160000        -1.070000        -1.160000        -0.910000         0.000000
+#Maximum Daily Rainfall (mm/day)
+MAXDAILYRAIN 250.000000
+
+#***********************************************#
+#***********CRACK ANALYSIS PARAMETERS***********#
+#***********************************************#
+#
+#*********METHOD01*SLP*ROUGH*CRV******************#
+#ROUGHNESS INDEX (int)
+M1ROUGHINDX 10
+#ROUGHNESS THRESHOLD 1 LOWER (double, deg)
+M1ROUGHTHRESH1 2.500000
+#ROUGHNESS THRESHOLD 2 UPPER (double, deg)
+M1ROUGHTHRESH2 10.000000
+#SLOPE INDEX (int)
+M1SLOPEINDX 10
+#SLOPE THRESHOLD (double, deg)
+M1SLPTHRESH 10.000000
+#CURVATURE INDEX (int)
+M1CRVINDX 1
+#CURVATURE THRESHOLD (double, deg)
+M1CRVTHRESH 150.000000
+#Z Standard Deviation in Cell Threshold (estimated vertical georef accuracy)
+M1ZSTDEVTRHESH 0.002500
+#
+#*********METHOD02*SLP*MULTI_CRV******************#
+#SLOPE INDEX (int)
+M2SLOPEINDX 10
+#SLOPE THRESHOLD (double, deg)
+M2SLPTHRESH 14.000000
+#CURVATURE INDEX 1(int)
+M2CRV1INDX 1
+#CURVATURE 1 THRESHOLD (double, deg)
+M2CRV1THRESH 250.000000
+#CURVATURE INDEX 2(int)
+M2CRV2INDX 5
+#CURVATURE 2 THRESHOLD (double, deg)
+M2CRV2THRESH 125.000000
+#CURVATURE INDEX 3(int)
+M2CRV3INDX 10
+#CURVATURE 3 THRESHOLD (double, deg)
+M2CRV3THRESH 150.000000
+#Z Standard Deviation in Cell Threshold (estimated vertical georef accuracy)
+M2ZSTDEVTRHESH 0.002500
+
+#********************************************************#
+#***********BENDING ENERGY ANALYSIS PARAMETERS***********#
+#********************************************************#
+#Bending Energy # windows for analysis (0 = not analyzed)
+BEANALYSIS 0
+#Bending Energy Window sizes (e.g., 5 10 25) Must have as many values as indicated for BEANALYSIS, separated by spaces
+BEWIN 
+0
+#Maximum points to use for computing Bending Energy
+BEMAXPTS 1000
+
+#*********************************************#
+#***********FACET DETECTION ANALYSIS**********#
+#*********************************************#
+#Detect Facets (0 = no, 1= yes).
+DETECTFACETS 0
+#Normal Variation Threshold (DEGREES)
+NORMVAR 18.000000
+
+#*********************************************#
+#***********DELAUNAY TRIANGULATION************#
+#*********************************************#
+#MAX EDGE LENGTH
+MAXEDGELENGTH 5.000000
+
+#****************************************************************#
+#***********RDA ANALYSIS (OLD-MAY NOT WORK) PARAMETERS***********#
+#****************************************************************#
+#RDA ANALYSIS 0 = no, 1= yes (_A,_F,_G,_W)
+RDA 0
